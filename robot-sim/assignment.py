@@ -120,14 +120,14 @@ def find_closest_box():
 
 def find_prime_box(codel):
     i = 0
-    while 1:
+    while True:
         # It was discovered that it's not uncommon for the robot to lose vision of the prime box despite being in front.
         # A special series of turning actions was coded inside the special_turn() function.
         special_turn(i)
         markers = R.see()
         for m in markers:
             if m.info.code in codel:
-                turn(0,0)
+                stop()
                 return m.info.code
         i+=1 
 
@@ -170,7 +170,7 @@ def go_grab(code):
         dist, rot = box_data(code)
         go(dist,rot)
         if dist <= d_th:
-            drive(0,0)
+            stop()
             R.grab()
             grabbed = True
             break
@@ -178,13 +178,13 @@ def go_grab(code):
 def go_release(prime_code, code):
     global grabbed
     print('Executing the Release function')
-    while 1:
+    while True:
         dist, rot = box_data(prime_code)
         go(dist,rot)
         # The release distance as the value (d_th+0.15) was chosen by preference.
         # It avoids crashing with the boxes but also places them at a reasonable distance amongst themselves.
         if dist <= d_th+0.15:
-            drive(0,0)
+            stop()
             R.release()
             grabbed = False
             primel.append(code)
