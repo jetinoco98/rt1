@@ -20,18 +20,19 @@ This can be also be expressed in the pseudocode presented below:
 
     while True:
         if robot_holding_box == True:
-            **find_closest_box**
+            find_closest_box
             if elements_in_prime_boxes_list == 0:
                 insert_robot_code_in_prime_boxes_list
                 move_to_next_iteration
-            **go_to_box_and_grab_it**
-        **find_prime_box**
-        **go_to_prime_box_and_release_grabbed_box**
+            go_to_box_and_grab_it
+        find_prime_box
+        go_to_prime_box_and_release_grabbed_box
         drive_backwards
 
 **2. Pseudocode for each of the functions used.**
 
 **2.1 find_closest_box**
+
     while True:
         i = 1
         codes_of_boxes = []
@@ -53,6 +54,7 @@ This can be also be expressed in the pseudocode presented below:
                 end_program
 
 **2.2 go_to_box_and_grab_it**
+
     while True:
         obtain_box_data
         go_to_box
@@ -62,6 +64,7 @@ This can be also be expressed in the pseudocode presented below:
             robot_holding_box = True
 
 **2.2.1 go_to_box**
+
     if box_rotation_value < -(rotation_treshold):
         turn_counterclockwise
     if if box_rotation_value < rotation_treshold:
@@ -71,6 +74,7 @@ This can be also be expressed in the pseudocode presented below:
         drive_robot_forward
 
 **2.3 find_prime_box**
+
     while True:
         turn_robot
         if prime_box_detected:
@@ -78,6 +82,7 @@ This can be also be expressed in the pseudocode presented below:
             return prime_box_code
 
 **2.4 go_to_prime_box_and_release_grabbed_box**
+
     while True:
         obtain_box_data
         go_to_box
