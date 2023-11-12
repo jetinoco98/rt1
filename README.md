@@ -18,71 +18,71 @@ This can be also be expressed in the pseudocode presented below:
 
 **1. Pseudocode for code execution loop.**
 
-while True:
-    if robot_holding_box == True:
-        **find_closest_box**
-        if elements_in_prime_boxes_list == 0:
-            insert_robot_code_in_prime_boxes_list
-            move_to_next_iteration
-        **go_to_box_and_grab_it**
-    **find_prime_box**
-    **go_to_prime_box_and_release_grabbed_box**
-    drive_backwards
+    while True:
+        if robot_holding_box == True:
+            **find_closest_box**
+            if elements_in_prime_boxes_list == 0:
+                insert_robot_code_in_prime_boxes_list
+                move_to_next_iteration
+            **go_to_box_and_grab_it**
+        **find_prime_box**
+        **go_to_prime_box_and_release_grabbed_box**
+        drive_backwards
 
 **2. Pseudocode for each of the functions used.**
 
 **2.1 find_closest_box**
-while True:
-    i = 1
-    codes_of_boxes = []
-    distances_of_boxes = []
-    see_boxes
-    filter_out_boxes_already_in_prime_list
-    if box_seen:
-        stop_turning
-        from element in box list:
-            insert_box_code_into_list
-            insert_box_distance_into_list
-        calculate_closest_box
-        obtain_code_of_closest_box
-        return code
-    else:
-        turn_box
-        i+=1
-        if box_has_turned_360_degrees
-            end_program
+    while True:
+        i = 1
+        codes_of_boxes = []
+        distances_of_boxes = []
+        see_boxes
+        filter_out_boxes_already_in_prime_list
+        if box_seen:
+            stop_turning
+            from element in box list:
+                insert_box_code_into_list
+                insert_box_distance_into_list
+            calculate_closest_box
+            obtain_code_of_closest_box
+            return code
+        else:
+            turn_box
+            i+=1
+            if box_has_turned_360_degrees
+                end_program
 
 **2.2 go_to_box_and_grab_it**
-while True:
-    obtain_box_data
-    go_to_box
-    if distance_to_box <= treshold:
-        stop_robot
-        grab_box
-        robot_holding_box = True
+    while True:
+        obtain_box_data
+        go_to_box
+        if distance_to_box <= treshold:
+            stop_robot
+            grab_box
+            robot_holding_box = True
 
 **2.2.1 go_to_box**
-if box_rotation_value < -(rotation_treshold):
-    turn_counterclockwise
-if if box_rotation_value < rotation_treshold:
-    turn_clockwise
-else:
-    stop_turning
-    drive_robot_forward
+    if box_rotation_value < -(rotation_treshold):
+        turn_counterclockwise
+    if if box_rotation_value < rotation_treshold:
+        turn_clockwise
+    else:
+        stop_turning
+        drive_robot_forward
 
 **2.3 find_prime_box**
-while True:
-    turn_robot
-    if prime_box_detected:
-        stop_robot
-        return prime_box_code
+    while True:
+        turn_robot
+        if prime_box_detected:
+            stop_robot
+            return prime_box_code
 
 **2.4 go_to_prime_box_and_release_grabbed_box**
-while True:
-    obtain_box_data
-    go_to_box
-    if distance_to_prime_box < release_treshold_value:
-        stop_robot
-        release_the_box
-        robot_holding_box = False
-        insert_box_code_into_prime_boxes_list
+    while True:
+        obtain_box_data
+        go_to_box
+        if distance_to_prime_box < release_treshold_value:
+            stop_robot
+            release_the_box
+            robot_holding_box = False
+            insert_box_code_into_prime_boxes_list
