@@ -19,9 +19,11 @@ has_box = False
 
 # New Variables
 robot_vision = {}  #  Code: (distance, angle)
-boxes = []  # All boxes in the window
+total_boxes = []  # All boxes in the window
 boxes_at_goal = []  # All boxes that have been placed together
 
+# EXAM EXCLUSIVE VARIABLES
+boxes_by_color = []
 
 ########################
 # FUNCTIONS
@@ -94,8 +96,9 @@ def initial_scan():
             code = m.info.code
             distance = m.dist
             angle = m.rot_y
+            color = m.info.marker_type
             if code not in boxes_dict:
-                boxes_dict[code] = (distance, angle)
+                boxes_dict[code] = [distance, angle, color]
         time.sleep(0.5)
         i+=1
     # After the for loop ends
@@ -139,7 +142,7 @@ def find_closest_box(codes):
         
         # Exit the program if timout is reached
         if time.time() - start_time > timeout_seconds:
-            print("No more boxes found.")
+            print("No more boxes found. Program has finished.")
             stop()
             return None
 
@@ -195,67 +198,103 @@ def robot_action():
         target_box = 0
         drive(-100, 0.5)
 
+def clasify_boxes(initial_boxes):
+    global boxes_by_color
+
+    # To consider the 3 silver boxes
+    initial_boxes[38][2] = 'silver-token'
+    initial_boxes[39][2] = 'silver-token'
+    initial_boxes[40][2] = 'silver-token'
+
+    boxes_gold = []
+    boxes_silver = []
+
+    # Obtain the codes by color
+    for code, info in initial_boxes.items():
+        color = info[2]
+        if color == 'gold-token':
+            boxes_gold.append(code)
+        elif color == 'silver-token':
+            boxes_silver.append(code)
+    
+    # Separate gold boxes by pairs with a silver box
+    for i, box_gold in enumerate(boxes_gold):
+        for j, box_silver in enumerate(boxes_silver):
+            if i == j:
+                pair = [box_gold, box_silver]
+                boxes_by_color.append(pair)
 
 ########################
 # CODE EXECUTION
 ########################
-        
+#markers = [marker for marker in R.see()]
+#print('Initial markers:', markers)
+# marker_type='gold-token'
+# marker_type='silver-token'
+
 initial_boxes = initial_scan() # Dict => code:(dist,ang)
+print('INITIAL BOXES:', initial_boxes)
 print('Number of boxes found:', len(initial_boxes))
+
+clasify_boxes(initial_boxes)
+print('Boxes by color pair:', boxes_by_color)
 
 # Create a list named 'boxes' with the codes of all boxes found during initial scan
 for box in initial_boxes:
-    boxes.append(box)
-
-# Find the initial closest box and set it up as the main box
-main_box = find_closest_box(boxes)
-boxes_at_goal.append(main_box)
-print('The box #', main_box, ' was the closest found, so all boxes will be placed next to it.')
-
-# Initialization of variables with unexisting box code.
-target_box = 0
-last_grabbed_box = 0
+    total_boxes.append(box)
 
 
-while True:
+for boxes in boxes_by_color:
+    boxes_at_goal = []
+    # Find the initial closest box and set it up as the main box
+    main_box = find_closest_box(boxes)
+    boxes_at_goal.append(main_box)
+    print('The box #', main_box, ' was the closest found, so all boxes will be placed next to it.')
 
-    ### Update the info of the boxes currently being seen
-    update_vision_data()
+    # Initialization of variables with unexisting box code.
+    target_box = 0
+    last_grabbed_box = 0
 
-    ### Action: Robot to box -> GRAB
-    if not(has_box):
-        go_status = go_to_box(robot_vision, target_box)
 
-        # The robot has reached a box
-        if go_status == True:
-            robot_action()
+    while True:
 
-        # The robot cannot see any box
-        if go_status == False:
-            print('Re-scaning...')
-            available_boxes = [x for x in boxes if x not in boxes_at_goal]
-            print('Available boxes:', available_boxes)
-            if not available_boxes:
-                break
-            target_box = find_closest_box(available_boxes)
-            if target_box is None:
-                break
-            last_grabbed_box = target_box
+        ### Update the info of the boxes currently being seen
+        update_vision_data()
 
-    ### Action: Robot to box -> RELEASE
-    elif (has_box):
-        go_status = go_to_box(robot_vision, target_box)
+        ### Action: Robot to box -> GRAB
+        if not(has_box):
+            go_status = go_to_box(robot_vision, target_box)
 
-        # The robot has reached a box
-        if go_status == True:
-            robot_action()
+            # The robot has reached a box
+            if go_status == True:
+                robot_action()
 
-        # The robot cannot see any box
-        if go_status == False:
-            print('Re-scaning...')
-            print('Boxes at goal:', boxes_at_goal)
-            target_box = find_closest_box(boxes_at_goal)
-            if target_box is None:
-                break
+            # The robot cannot see any box
+            if go_status == False:
+                print('Re-scaning...')
+                available_boxes = [x for x in boxes if x not in boxes_at_goal]
+                print('Available boxes:', available_boxes)
+                if not available_boxes:
+                    break
+                target_box = find_closest_box(available_boxes)
+                if target_box is None:
+                    break
+                last_grabbed_box = target_box
+
+        ### Action: Robot to box -> RELEASE
+        elif (has_box):
+            go_status = go_to_box(robot_vision, target_box)
+
+            # The robot has reached a box
+            if go_status == True:
+                robot_action()
+
+            # The robot cannot see any box
+            if go_status == False:
+                print('Re-scaning...')
+                print('Boxes at goal:', boxes_at_goal)
+                target_box = find_closest_box(boxes_at_goal)
+                if target_box is None:
+                    break
 
 print('Program has finished!')

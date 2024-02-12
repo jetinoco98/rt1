@@ -19,9 +19,11 @@ has_box = False
 
 # New Variables
 robot_vision = {}  #  Code: (distance, angle)
-boxes = []  # All boxes in the window
+total_boxes = []  # All boxes in the window
 boxes_at_goal = []  # All boxes that have been placed together
 
+# EXAM EXCLUSIVE VARIABLES
+boxes_by_size = []
 
 ########################
 # FUNCTIONS
@@ -139,7 +141,7 @@ def find_closest_box(codes):
         
         # Exit the program if timout is reached
         if time.time() - start_time > timeout_seconds:
-            print("No more boxes found.")
+            print("No more boxes found. Program has finished.")
             stop()
             return None
 
@@ -195,67 +197,106 @@ def robot_action():
         target_box = 0
         drive(-100, 0.5)
 
+def clasify_boxes(initial_boxes):
+    global boxes_by_size
+
+    all_codes = []
+    boxes_low = []
+    boxes_med = []
+    boxes_high = []
+
+    for code in initial_boxes:
+        all_codes.append(code)
+    n = len(all_codes)
+    quantity = int(n/3)
+    extra = n % 3
+
+    while len(boxes_low) < quantity:
+        code = min(all_codes)
+        boxes_low.append(code)
+        all_codes.remove(code)
+
+    while len(boxes_med) < quantity:
+        code = min(all_codes)
+        boxes_med.append(code)
+        all_codes.remove(code)
+    
+    while len(boxes_high) < quantity + extra:
+        code = min(all_codes)
+        boxes_high.append(code)
+        all_codes.remove(code)
+
+    boxes_by_size.append(boxes_low)
+    boxes_by_size.append(boxes_med)
+    boxes_by_size.append(boxes_high)
+
 
 ########################
 # CODE EXECUTION
 ########################
-        
+
 initial_boxes = initial_scan() # Dict => code:(dist,ang)
+print('INITIAL BOXES:', initial_boxes)
 print('Number of boxes found:', len(initial_boxes))
+clasify_boxes(initial_boxes)
+print('Boxes by size:', boxes_by_size)
 
 # Create a list named 'boxes' with the codes of all boxes found during initial scan
 for box in initial_boxes:
-    boxes.append(box)
-
-# Find the initial closest box and set it up as the main box
-main_box = find_closest_box(boxes)
-boxes_at_goal.append(main_box)
-print('The box #', main_box, ' was the closest found, so all boxes will be placed next to it.')
-
-# Initialization of variables with unexisting box code.
-target_box = 0
-last_grabbed_box = 0
+    total_boxes.append(box)
 
 
-while True:
+for boxes in boxes_by_size:
+    boxes_at_goal = []
+    # Find the initial closest box and set it up as the main box
+    main_box = find_closest_box(boxes)
+    boxes_at_goal.append(main_box)
+    print('The box #', main_box, ' was the closest found, so all boxes will be placed next to it.')
 
-    ### Update the info of the boxes currently being seen
-    update_vision_data()
+    # Initialization of variables with unexisting box code.
+    target_box = 0
+    last_grabbed_box = 0
 
-    ### Action: Robot to box -> GRAB
-    if not(has_box):
-        go_status = go_to_box(robot_vision, target_box)
 
-        # The robot has reached a box
-        if go_status == True:
-            robot_action()
+    while True:
 
-        # The robot cannot see any box
-        if go_status == False:
-            print('Re-scaning...')
-            available_boxes = [x for x in boxes if x not in boxes_at_goal]
-            print('Available boxes:', available_boxes)
-            if not available_boxes:
-                break
-            target_box = find_closest_box(available_boxes)
-            if target_box is None:
-                break
-            last_grabbed_box = target_box
+        ### Update the info of the boxes currently being seen
+        update_vision_data()
 
-    ### Action: Robot to box -> RELEASE
-    elif (has_box):
-        go_status = go_to_box(robot_vision, target_box)
+        ### Action: Robot to box -> GRAB
+        if not(has_box):
+            go_status = go_to_box(robot_vision, target_box)
 
-        # The robot has reached a box
-        if go_status == True:
-            robot_action()
+            # The robot has reached a box
+            if go_status == True:
+                robot_action()
 
-        # The robot cannot see any box
-        if go_status == False:
-            print('Re-scaning...')
-            print('Boxes at goal:', boxes_at_goal)
-            target_box = find_closest_box(boxes_at_goal)
-            if target_box is None:
-                break
+            # The robot cannot see any box
+            if go_status == False:
+                print('Re-scaning...')
+                available_boxes = [x for x in boxes if x not in boxes_at_goal]
+                print('Available boxes:', available_boxes)
+                if not available_boxes:
+                    break
+                target_box = find_closest_box(available_boxes)
+                if target_box is None:
+                    break
+                last_grabbed_box = target_box
+
+        ### Action: Robot to box -> RELEASE
+        elif (has_box):
+            go_status = go_to_box(robot_vision, target_box)
+
+            # The robot has reached a box
+            if go_status == True:
+                robot_action()
+
+            # The robot cannot see any box
+            if go_status == False:
+                print('Re-scaning...')
+                print('Boxes at goal:', boxes_at_goal)
+                target_box = find_closest_box(boxes_at_goal)
+                if target_box is None:
+                    break
 
 print('Program has finished!')
